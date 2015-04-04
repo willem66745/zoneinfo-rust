@@ -394,7 +394,7 @@ impl ZoneInfo {
     ///
     /// Please note that the initial timestamp is `std::i64::MIN` (when using
     /// a 64-bit OS) and cannot be printed as timestamp.
-    pub fn get_transisitions(&self) -> BTreeMap<Timespec, ZoneInfoElement> {
+    pub fn get_transitions(&self) -> BTreeMap<Timespec, ZoneInfoElement> {
         let mut map = BTreeMap::<Timespec, ZoneInfoElement>::new();
 
         for (time, type_index) in self.zone_info
@@ -417,7 +417,7 @@ impl ZoneInfo {
 
     /// Get all leap second transitions which are coded in the zoneinfo file as
     /// a map of timestamps and offset towards to previous time.
-    pub fn get_leap_second_transisitions(&self) -> BTreeMap<Timespec, Duration> {
+    pub fn get_leap_second_transitions(&self) -> BTreeMap<Timespec, Duration> {
         let mut map = BTreeMap::<Timespec, Duration>::new();
 
         for &(time, duration) in self.zone_info.leap_seconds_data.iter() {
@@ -445,7 +445,7 @@ impl ZoneInfo {
     /// }
     /// ```
     pub fn get_actual_zoneinfo(&self, timestamp: Timespec) -> Option<ZoneInfoElement> {
-        let transitions = self.get_transisitions();
+        let transitions = self.get_transitions();
 
         if let Some((_, zoneinfo)) = transitions.iter()
                                                 .take_while(|&(x,_)| *x < timestamp)
@@ -461,8 +461,8 @@ impl ZoneInfo {
     /// place.
     ///
     /// Note that in some regions there is no DST, and this function will return None.
-    pub fn get_next_transisition_time(&self, timestamp: Timespec) -> Option<(Timespec, ZoneInfoElement)> {
-        let transitions = self.get_transisitions();
+    pub fn get_next_transition_time(&self, timestamp: Timespec) -> Option<(Timespec, ZoneInfoElement)> {
+        let transitions = self.get_transitions();
 
         if let Some((time, zoneinfo)) = transitions.iter()
                                                 .skip_while(|&(x,_)| *x < timestamp)

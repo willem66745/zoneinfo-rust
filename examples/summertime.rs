@@ -14,7 +14,7 @@ fn main() {
     // A very Northern/Mid-europe based example ;-)
     println!("It's {}", if actual.isdst {"Summertime!"} else {"cold :("});
 
-    let (next, info) = info.get_next_transisition_time(now).unwrap();
+    let (next, info) = info.get_next_transition_time(now).unwrap();
 
     println!("And it will change again at {} (to {})", time::at(next).asctime(), info.abbreviation);
 }

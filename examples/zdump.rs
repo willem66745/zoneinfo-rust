@@ -13,7 +13,7 @@ fn main() {
         None => ZoneInfo::get_local_zoneinfo().unwrap()
     };
 
-    let all = info.get_transisitions();
+    let all = info.get_transitions();
     let mut initial = true;
     let (_, mut old_info) = all.iter().next().unwrap();
 

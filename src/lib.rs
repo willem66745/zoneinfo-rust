@@ -1,4 +1,4 @@
-//! This crate provides utilities to parse zoneinfo data. Only tested without
+//! This crate provides utilities to parse zoneinfo data. Only tested with
 //! Linux, although support is expected for all flavors of *nix including
 //! Darwin. Windows users might use it by downloading zoneinfo data from a
 //! Linux distribution, for example

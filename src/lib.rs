@@ -14,7 +14,7 @@ use std::fs::{File, metadata};
 use std::path::{Path, PathBuf};
 use std::io::{Read, Cursor};
 use byteorder::{BigEndian, ReadBytesExt};
-use time::{Timespec, Duration};
+use time::Timespec;
 use std::collections::BTreeMap;
 
 // format is described in timezone/tzfile.h of the GNU libc library
@@ -38,7 +38,7 @@ struct TzHead<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>> {
 
 #[derive(Debug)]
 struct TzType {
-    ut_offset: Duration,
+    ut_offset: i32,
     isdst: bool,
     abbreviation: String
 }
@@ -139,7 +139,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
                                      .collect();
             let abbreviation = std::str::from_utf8(&abbr[..]).unwrap(); // FIXME: improve error handling
             local_time_data.push(TzType{
-                ut_offset: Duration::seconds(ut_offset as i64),
+                ut_offset: ut_offset,
                 isdst: isdst != 0,
                 abbreviation: abbreviation.to_string(),
             })
@@ -152,7 +152,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with leap second transitions
-    fn decode_leap_second_corrections(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<(Timespec, Duration)>, byteorder::Error> {
+    fn decode_leap_second_corrections(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<(Timespec, i32)>, byteorder::Error> {
         let mut leap_second_corrections = vec![];
 
         for _ in 0..self.inner.tzh_leapcnt {
@@ -160,7 +160,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
             let seconds = try!(reader.read_i32::<BigEndian>());
 
             leap_second_corrections.push((Timespec::new(transition_time as i64, 0),
-                                          Duration::seconds(seconds as i64)));
+                                          seconds));
         }
 
         Ok(leap_second_corrections)
@@ -206,7 +206,7 @@ struct ZoneInfoInner {
     transision_times: Vec<Timespec>,
     transision_types: Vec<u8>,
     local_times: Vec<TzType>,
-    leap_seconds_data: Vec<(Timespec, Duration)>,
+    leap_seconds_data: Vec<(Timespec, i32)>,
     transition_flags1: Vec<TransitionTimeFlag>,
     transition_flags2: Vec<TransitionTimeFlag>
 }
@@ -243,7 +243,7 @@ fn consume_64bit_timestamps(reader: &mut Cursor<&[u8]>) -> Result<i64, byteorder
 #[derive(Debug, Clone)]
 pub struct ZoneInfoElement {
     /// Offset to UTC in seconds
-    pub ut_offset: Duration,
+    pub ut_offset: i32,
     /// Daylight saving time
     pub isdst: bool,
     /// Ebbreviation of the time zone
@@ -417,8 +417,8 @@ impl ZoneInfo {
 
     /// Get all leap second transitions which are coded in the zoneinfo file as
     /// a map of timestamps and offset towards to previous time.
-    pub fn get_leap_second_transitions(&self) -> BTreeMap<Timespec, Duration> {
-        let mut map = BTreeMap::<Timespec, Duration>::new();
+    pub fn get_leap_second_transitions(&self) -> BTreeMap<Timespec, i32> {
+        let mut map = BTreeMap::<Timespec, i32>::new();
 
         for &(time, duration) in self.zone_info.leap_seconds_data.iter() {
             map.insert(time.clone(), duration.clone());

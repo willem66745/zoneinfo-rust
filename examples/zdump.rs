@@ -26,19 +26,21 @@ fn main() {
         }
         else {
             let oldtime = Timespec::new(time.sec - 1, 0);
+            let oldtime_loc = Timespec::new(oldtime.sec + old_info.ut_offset as i64, 0);
+            let time_loc = Timespec::new(time.sec + info.ut_offset as i64, 0);
 
             println!("{} UT = {} {} isdst={} gmtoff={}",
                     at_utc(oldtime).asctime(),
-                    at_utc(oldtime + old_info.ut_offset).asctime(),
+                    at_utc(oldtime_loc).asctime(),
                     old_info.abbreviation,
                     if old_info.isdst {1} else {0},
-                    old_info.ut_offset.num_seconds());
+                    old_info.ut_offset);
             println!("{} UT = {} {} isdst={} gmtoff={}",
                     at_utc(*time).asctime(),
-                    at_utc(*time + info.ut_offset).asctime(),
+                    at_utc(time_loc).asctime(),
                     info.abbreviation,
                     if info.isdst {1} else {0},
-                    info.ut_offset.num_seconds());
+                    info.ut_offset);
         }
         old_info = info;
     }

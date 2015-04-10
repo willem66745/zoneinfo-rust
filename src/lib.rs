@@ -214,12 +214,20 @@ struct ZoneInfoInner {
 fn read_zone_info<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>
             (cursor: &mut Cursor<&[u8]>, x: F) -> Result<ZoneInfoInner, std::io::Error> {
     let header = try!(TzHead::new(cursor, x));
-    let transition_times = try!(header.decode_transition_times(cursor));
-    let transition_types = try!(header.decode_transition_types(cursor));
+    let mut transition_times = try!(header.decode_transition_times(cursor));
+    let mut transition_types = try!(header.decode_transition_types(cursor));
     let local_times = try!(header.decode_local_time_data(cursor));
     let leap_seconds_data = try!(header.decode_leap_second_corrections(cursor));
     let transition_flags1 = try!(header.decode_transition_flags1(cursor));
     let transition_flags2 = try!(header.decode_transition_flags2(cursor));
+
+    // when only a single time definition exists and no single transition create a dummy
+    // transition. This to support zoneinfo files which are part of the Debian, Ubuntu, Mint
+    // distribution family.
+    if transition_times.len() == 0 && local_times.len() == 1 {
+        transition_times.push(Timespec::new(std::i64::MIN, 0));
+        transition_types.push(0);
+    }
 
     Ok(ZoneInfoInner {
         header: header.inner,

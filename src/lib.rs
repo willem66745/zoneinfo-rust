@@ -18,7 +18,7 @@ use time::Timespec;
 use std::collections::BTreeMap;
 
 // format is described in timezone/tzfile.h of the GNU libc library
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TzHeadInner {
     tzh_magic: String, // TZ_MAGIC
     tzh_version: char, // '\0' or '2' or '3' as of 2013
@@ -36,7 +36,7 @@ struct TzHead<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>> {
     time_consumer: F
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TzType {
     ut_offset: i32,
     isdst: bool,
@@ -201,6 +201,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     }
 }
 
+#[derive(Clone)]
 struct ZoneInfoInner {
     header: TzHeadInner,
     transision_times: Vec<Timespec>,

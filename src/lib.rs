@@ -264,6 +264,7 @@ pub struct ZoneInfoElement {
 }
 
 /// Time zone information
+#[derive(Clone)]
 pub struct ZoneInfo {
     zone_info:ZoneInfoInner,
     time_zone_specifier:String
@@ -487,4 +488,13 @@ impl ZoneInfo {
     pub fn get_dst_specifier(&self)->String {
         self.time_zone_specifier.trim().to_string()
     }
+}
+
+#[test]
+fn zoneinfo_clone() {
+    let zi = ZoneInfo::get_local_zoneinfo().unwrap();
+
+    let zic = zi.clone();
+
+    assert_eq!(zi.get_dst_specifier(), zic.get_dst_specifier());
 }

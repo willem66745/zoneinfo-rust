@@ -9,7 +9,6 @@ extern crate time;
 
 mod visitdir;
 
-use std::error::Error;
 use std::fs::{File, metadata};
 use std::path::{Path, PathBuf};
 use std::io::{Read, Cursor};

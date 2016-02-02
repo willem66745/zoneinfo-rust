@@ -1,7 +1,7 @@
 // Since fs::walk_dir is unstable, a own implementation; hopefully a later
 // release will include a variant of it and this module can be removed.
 use std::io;
-use std::fs::{self, PathExt, DirEntry, metadata};
+use std::fs::{self, DirEntry, metadata};
 use std::path::Path;
 
 // one possible implementation of fs::walk_dir only visiting files

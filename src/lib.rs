@@ -30,7 +30,7 @@ struct TzHeadInner {
     tzh_charcnt: u32, // coded number of abbr. chars
 }
 
-struct TzHead<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>> {
+struct TzHead<F: Fn(&mut Cursor<&[u8]>)->Result<i64, std::io::Error>> {
     inner: TzHeadInner,
     time_consumer: F
 }
@@ -51,9 +51,9 @@ pub enum TransitionTimeFlag {
     Local
 }
 
-impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
+impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, std::io::Error>>TzHead<F> {
     /// returns parsed zoneinfo header
-    fn new(reader: &mut Cursor<&[u8]>, x: F) -> Result<TzHead<F>, byteorder::Error> {
+    fn new(reader: &mut Cursor<&[u8]>, x: F) -> Result<TzHead<F>, std::io::Error> {
         let mut magic:[u8; 4] = [0;4];
         try!(reader.read(&mut magic));
         let version = try!(reader.read_u8());
@@ -85,7 +85,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with transition times.
-    fn decode_transition_times(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<Timespec>, byteorder::Error> {
+    fn decode_transition_times(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<Timespec>, std::io::Error> {
         let mut transition_times = Vec::<Timespec>::new();
 
         for _ in 0..self.inner.tzh_timecnt {
@@ -99,7 +99,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with transition types.
-    fn decode_transition_types(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<u8>, byteorder::Error> {
+    fn decode_transition_types(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<u8>, std::io::Error> {
         let mut transition_types = Vec::<u8>::new();
 
         for _ in 0..self.inner.tzh_timecnt {
@@ -115,7 +115,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with local time startings data
-    fn decode_local_time_data(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<TzType>, byteorder::Error> {
+    fn decode_local_time_data(&self, reader: &mut Cursor<&[u8]>) -> Result<Vec<TzType>, std::io::Error> {
         let mut local_time_data = Vec::<TzType>::new();
         let mut raw_local_time_data = vec![];
 
@@ -151,7 +151,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with leap second transitions
-    fn decode_leap_second_corrections(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<(Timespec, i32)>, byteorder::Error> {
+    fn decode_leap_second_corrections(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<(Timespec, i32)>, std::io::Error> {
         let mut leap_second_corrections = vec![];
 
         for _ in 0..self.inner.tzh_leapcnt {
@@ -169,7 +169,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with wall clock or standard transition moments
-    fn decode_transition_flags1(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<TransitionTimeFlag>, byteorder::Error> {
+    fn decode_transition_flags1(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<TransitionTimeFlag>, std::io::Error> {
         let mut transition_flags = vec![];
 
         for _ in 0..self.inner.tzh_ttisstdcnt {
@@ -186,7 +186,7 @@ impl <F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>TzHead<F> {
     ///
     /// the function assumes that the provided cursor is located at the the start of the
     /// table with local or universal transition moments
-    fn decode_transition_flags2(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<TransitionTimeFlag>, byteorder::Error> {
+    fn decode_transition_flags2(&self, reader: &mut Cursor<&[u8]>) -> Result< Vec<TransitionTimeFlag>, std::io::Error> {
         let mut transition_flags = vec![];
 
         for _ in 0..self.inner.tzh_ttigmtcnt {
@@ -211,7 +211,7 @@ struct ZoneInfoInner {
     transition_flags2: Vec<TransitionTimeFlag>
 }
 
-fn read_zone_info<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>
+fn read_zone_info<F: Fn(&mut Cursor<&[u8]>)->Result<i64, std::io::Error>>
             (cursor: &mut Cursor<&[u8]>, x: F) -> Result<ZoneInfoInner, std::io::Error> {
     let header = try!(TzHead::new(cursor, x));
     let mut transition_times = try!(header.decode_transition_times(cursor));
@@ -240,10 +240,10 @@ fn read_zone_info<F: Fn(&mut Cursor<&[u8]>)->Result<i64, byteorder::Error>>
     })
 }
 
-fn consume_32bit_timestamps(reader: &mut Cursor<&[u8]>) -> Result<i64, byteorder::Error> {
+fn consume_32bit_timestamps(reader: &mut Cursor<&[u8]>) -> Result<i64, std::io::Error> {
     Ok(try!(reader.read_i32::<BigEndian>()) as i64)
 }
-fn consume_64bit_timestamps(reader: &mut Cursor<&[u8]>) -> Result<i64, byteorder::Error> {
+fn consume_64bit_timestamps(reader: &mut Cursor<&[u8]>) -> Result<i64, std::io::Error> {
     reader.read_i64::<BigEndian>()
 }
 
